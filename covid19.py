@@ -16,10 +16,11 @@ covidRecife.tail()
 plt.plot(covidRecife['order_for_place'], (covidRecife['deaths']))
 
 #first try with a for loop
+covidRecife['deaths_per_day'] = 0
 for index, i in enumerate(covidRecife.deaths):
     if index > 0:
         covidRecife['deaths_per_day'][index] = (covidRecife.deaths[index] - covidRecife.deaths[index-1])
-                
+         
 covidRecife.tail()
 
 #death_per_day bar graph
