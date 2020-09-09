@@ -24,4 +24,4 @@ for index, i in enumerate(covidRecife.deaths):
 covidRecife.tail()
 
 #death_per_day bar graph
-covidRecife['deaths_per_day'].plot.bar(figsize=(20,15))
+covidRecife['deaths_per_day'].plot.bar(figsize=(30,10))
