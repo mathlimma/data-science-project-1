@@ -57,7 +57,7 @@ plt.plot(covidRecife['order_for_place'], covidRecife['deaths_per_day'], label="l
 plt.plot(covidSP['order_for_place'], covidSP['deaths_per_day'], label="line 2")
 # linha azul => recife / linha laranja => SP
 
-# deaths per day per 1 million inhabitants function without for loop
+# deaths per day per 1 million inhabitants function without for loop 
 def deaths_per_day_per_1kk(newcolumn, table):
     population_per_1kk = table.estimated_population_2019[0] / 1000000
     table[newcolumn] = table.deaths_per_day / population_per_1kk
