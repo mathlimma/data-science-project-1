@@ -16,10 +16,13 @@ covidRecife.tail()
 plt.plot(covidRecife['order_for_place'], (covidRecife['deaths']))
 
 #first try with a for loop
-covidRecife['deaths_per_day'] = 0
-for index, i in enumerate(covidRecife.deaths):
-    if index > 0:
-        covidRecife['deaths_per_day'][index] = (covidRecife.deaths[index] - covidRecife.deaths[index-1])
+def sub_column_value(newcolumn, subcolumn, table):
+    table[newcolumn] = 0
+    for index, i in enumerate(subcolumn):
+        if index > 0:
+            table[newcolumn][index] = (subcolumn[index] - subcolumn[index-1])
+
+sub_column_value('deaths_per_day', covidRecife.deaths, covidRecife)
          
 covidRecife.tail()
 
