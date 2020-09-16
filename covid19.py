@@ -29,9 +29,6 @@ covidRecife.tail()
 #death_per_day bar graph
 covidRecife['deaths_per_day'].plot.bar(figsize=(30,10))
 
-# data about covidRecife
-covidRecife.describe()
-
 # covid in São Paulo
 covidSP = covid[covid.city == 'São Paulo'].sort_values(by=['date'], ascending=True)
 covidSP.reset_index(inplace=True, drop=True)
@@ -71,5 +68,14 @@ deaths_per_day_per_1kk('deaths_per_day_per_1kk_inhabitants', covidSP)
 plt.plot(covidRecife['order_for_place'], covidRecife['deaths_per_day_per_1kk_inhabitants'], label="line 1")
 plt.plot(covidSP['order_for_place'], covidSP['deaths_per_day_per_1kk_inhabitants'], label="line 2")
 # linha azul => recife / linha laranja => SP
+
+# statistical data about covidRecife
+covidRecife.describe()
+
+# statistical data about covidSP
+covidSP.describe()
+
+# boxplot
+plt.boxplot([covidRecife.deaths_per_day_per_1kk_inhabitants, covidSP.deaths_per_day_per_1kk_inhabitants])
 
 
