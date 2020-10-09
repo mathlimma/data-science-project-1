@@ -103,7 +103,7 @@ df_rec_sp['dpdp1kk_difference'].plot(kind='hist')
 
 # Shapiro-Wilk normality test (value, p-value). Null hypothesis: the deaths in recife are not normally distributed.
 stats.shapiro(df_rec_sp['dpdp1kk_difference'])
-# a p-value less than the critical value shapiro => return (critical value, p-value) indicates that the null hypothesis was rejected
+# a p-value less than the critical value indicates that the null hypothesis was rejected / shapiro => return (critical value, p-value)
 
 # executing the t-test
 stats.ttest_rel(df_rec_sp['deaths_per_day_per_1kk_in_Recife'], df_rec_sp['deaths_per_day_per_1kk_in_Sao_Paulo'])
