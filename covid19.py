@@ -78,4 +78,12 @@ covidSP.describe()
 # boxplot
 plt.boxplot([covidRecife.deaths_per_day_per_1kk_inhabitants, covidSP.deaths_per_day_per_1kk_inhabitants], labels=['Recife', 'São Paulo'])
 
+# here i gathered the informations about deaths per day from both cities
+crec_dp1kk = covidRecife.deaths_per_day_per_1kk_inhabitants[0:136:1]
+csp_dp1kk = covidSP.deaths_per_day_per_1kk_inhabitants[0:136:1]
+
+# here i concatenate both DataFrames and change the name of the tables using keys
+df_rec_sp = pd.concat([crec_dp1kk, csp_dp1kk], axis=1, keys=['deaths per day per 1kk in Recife', 'deaths per day per 1kk in São Paulo'])
+
+df_rec_sp.describe()
 
