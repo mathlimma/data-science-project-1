@@ -1,7 +1,12 @@
+#start by installing python through pyenv (use version 3.5.6 for scipy sake)=> https://realpython.com/intro-to-pyenv/
+#scipy and other packages => https://www.scipy.org/install.html#pip-install
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from pandas import DataFrame
+from scipy import stats
 
 covid = pd.read_csv(r'caso.csv', encoding = "utf-8")
 
@@ -83,7 +88,28 @@ crec_dp1kk = covidRecife.deaths_per_day_per_1kk_inhabitants[0:136:1]
 csp_dp1kk = covidSP.deaths_per_day_per_1kk_inhabitants[0:136:1]
 
 # here i concatenate both DataFrames and change the name of the tables using keys
-df_rec_sp = pd.concat([crec_dp1kk, csp_dp1kk], axis=1, keys=['deaths per day per 1kk in Recife', 'deaths per day per 1kk in São Paulo'])
+df_rec_sp = pd.concat([crec_dp1kk, csp_dp1kk], axis=1, keys=['deaths_per_day_per_1kk_in_Recife', 'deaths_per_day_per_1kk_in_Sao_Paulo'])
 
 df_rec_sp.describe()
 
+df_rec_sp.plot(kind='line', figsize=[10, 5])
+df_rec_sp.plot(kind='box', figsize=[10, 5])
+
+# check if the difference follows the gaussian
+df_rec_sp['dpdp1kk_difference'] = df_rec_sp['deaths_per_day_per_1kk_in_Recife'] - df_rec_sp['deaths_per_day_per_1kk_in_Sao_Paulo']
+
+# histogram
+df_rec_sp['dpdp1kk_difference'].plot(kind='hist')
+
+# Shapiro-Wilk normality test (value, p-value). Null hypothesis: the deaths in recife are not normally distributed.
+stats.shapiro(df_rec_sp['dpdp1kk_difference'])
+# a p-value less than the critical value shapiro => return (critical value, p-value) indicates that the null hypothesis was rejected
+
+# executing the t-test
+stats.ttest_rel(df_rec_sp['deaths_per_day_per_1kk_in_Recife'], df_rec_sp['deaths_per_day_per_1kk_in_Sao_Paulo'])
+
+# checking symmetry
+df_rec_sp['dpdp1kk_difference'].plot(kind='box')
+
+# wilcoxon test
+stats.wilcoxon(df_rec_sp['deaths_per_day_per_1kk_in_Recife'], df_rec_sp['deaths_per_day_per_1kk_in_Sao_Paulo'])
