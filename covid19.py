@@ -105,7 +105,15 @@ df_rec_sp.plot(kind='line', figsize=[10, 5])
 df_rec_sp.plot(kind='box', figsize=[10, 5])
 
 # check if the difference follows the gaussian
+# df_rec_sp['dpdp1kk_difference'] = df_rec_sp.apply(lambda x: x['deaths_per_day_per_1kk_in_Recife'] - x['deaths_per_day_per_1kk_in_Sao_Paulo'], axis=1),  ou :
 df_rec_sp['dpdp1kk_difference'] = df_rec_sp['deaths_per_day_per_1kk_in_Recife'] - df_rec_sp['deaths_per_day_per_1kk_in_Sao_Paulo']
+
+# checando quantas linhas com valores nulos tem a tabela
+print(df_rec_sp.isnull().sum())
+
+# a linha com valores NaN dará uma inconsistência no cálculo do teste de hipótese. Por isso precisamos limpar as linhas vazias a seguir, nesse caso apenas a primeira.
+df_rec_sp = df_rec_sp.dropna()
+print(df_rec_sp.isnull().sum())
 
 # histogram
 df_rec_sp['dpdp1kk_difference'].plot(kind='hist')
