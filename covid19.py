@@ -5,20 +5,54 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-from pandas import DataFrame
 from scipy import stats
 
+# importando o dataset
 covid = pd.read_csv(r'caso.csv', encoding = "utf-8")
+covid.describe()
 
-#primeiro ordenaremos pela data de forma ascendente (primeiro dia ao ultimo)
-covidRecife = covid[covid.city == 'Recife'].sort_values(by=['date'], ascending=True)
 
-#resetaremos o índice da tabela original e apresentaremos o índice da tabela almejada
+# vamos começar pelo pre processamento de dados
+
+# olhando para o tamanho do dataset vemos que temos 441580 linhas e 12 colunas 
+# mas estaremos usando apenas uma fração desses dados Recife e São Paulo 
+# também adicionaremos outras colunas que achamos necessário
+covid.shape
+
+# como ha dados com tipos object, o que nao pode ser bom pra categorizar, vamos mudar pra tipo categorico
+covid.dtypes
+
+# ajustando tipos dos dados
+covid['date'] = covid['date'].astype('category') 
+covid['state'] = covid['state'].astype('category') 
+covid['city'] = covid['city'].astype('category') 
+covid['place_type'] = covid['place_type'].astype('category') 
+covid.dtypes
+
+covid['state'].cat.categories
+
+# o nosso próximo passo eh ver a quantidade de elementos nulos em cada coluna e podemos observar que ha 4 colunas bastante dados nulos 
+print(covid.isnull().sum())
+
+covidRecife = covid[covid.city=='Recife']
+covidRecife.isnull().sum()
+
+covidSP = covid[covid.city=='São Paulo']
+covidSP.isnull().sum()
+
+# como vimos acima que os dados que iremos trabalhar nao tem nenhum dado ausente, decidimos por limpar o dataset original com instâncias com ao menos 1 coluna com dado ausente
+covid = covid.dropna()
+covid.shape
+
+# o nosso objetivo neste trabalho eh analisar especificamente as cidade de Recife e São Paulo, e como vimos, os dados nao apresentam falha com relação a elementos nulos, por isso a imputação de dados não vai ser necessaria. 
+
+# sobre detecção de outliers ...
+
+# uma estatística importante no nosso trabalho eh o número de mortes por dia, mas isso nao tem no dataset, por isso criamos esta função que adiciona esta coluna usando o metodo diff
+
+# pegando os dados de Recife, resetando o index e adicionando as colunas
+covidRecife = covidRecife.sort_values(by=['date'], ascending=True)
 covidRecife.reset_index(inplace=True, drop=True)
-covidRecife.tail()
-
-#apresentação do gráfico da quantidade de mortes total do dia
-plt.plot(covidRecife['order_for_place'], (covidRecife['deaths']))
 
 #first try with a for loop
 # def sub_column_value(newcolumn, subcolumn, table):
@@ -35,30 +69,41 @@ plt.plot(covidRecife['order_for_place'], (covidRecife['deaths']))
 
 # using pandas diff to calculate the difference between consecutive rows
 covidRecife['deaths_per_day'] = covidRecife.deaths.diff()
-covidRecife.tail()
+
+# aqui eu imputo o dado para nao perder os dados do primeiro dia
+covidRecife['deaths_per_day'][0] = 0
+
+covidRecife.head()
+
+# pegando  dados de São Paulo, resetando o index e adicionando as colunas
+covidSP = covid[covid.city == 'São Paulo'].sort_values(by=['date'], ascending=True)
+covidSP.reset_index(inplace=True, drop=True)
+covidSP['deaths_per_day'] = covidSP.deaths.diff()
+
+# aqui eu imputo o dado para nao perder os dados do primeiro dia
+covidSP['deaths_per_day'][0] = 0
+
+covidSP.head()
 
 #death_per_day bar graph
 covidRecife['deaths_per_day'].plot(kind="bar", figsize=(20,5))
 
-# covid in São Paulo
-covidSP = covid[covid.city == 'São Paulo'].sort_values(by=['date'], ascending=True)
-covidSP.reset_index(inplace=True, drop=True)
-# new column deaths_per_day in SP
-covidSP['deaths_per_day'] = covidSP.deaths.diff()
-covidSP.tail()
-
 # bar graph of deaths per day in SP
 covidSP['deaths_per_day'].plot(kind="bar", figsize=(20,5))
 
-# deaths comparison graph between Recife and São Paulo
-plt.plot(covidRecife['order_for_place'], covidRecife['deaths'], label="line 1")
-plt.plot(covidSP['order_for_place'], covidSP['deaths'], label="line 2")
-# linha azul => recife / linha laranja => SP
+# comparação entre o número de mortes total em Recife (azul) e São Paulo (laranja)
+crec_deaths = covidRecife.deaths[0:-1:1]
+csp_deaths = covidSP.deaths[0:-1:1]
+plot_deaths = pd.concat([crec_deaths, csp_deaths], axis=1, keys=['Recife', 'Sao Paulo'])
+plot_deaths.plot(kind='line', figsize=[6, 4])
+# no grafico abaixo a cidade de São Paulo parece ter sido muito mais afetada do que Recife, pois temos uma curva de mortes muito maior
 
-# comparison graph of deaths per day between Recife and São Paulo
-plt.plot(covidRecife['order_for_place'], covidRecife['deaths_per_day'], label="line 1")
-plt.plot(covidSP['order_for_place'], covidSP['deaths_per_day'], label="line 2")
-# linha azul => recife / linha laranja => SP
+# comparação entre o número de casos confirmados totais em Recife (azul) e São Paulo (laranja)
+crec_confirmed = covidRecife.confirmed[0:-1:1]
+csp_confirmed = covidSP.confirmed[0:-1:1]
+plot_confirmed = pd.concat([crec_confirmed, csp_confirmed], axis=1, keys=['Recife', 'Sao Paulo'])
+plot_confirmed.plot(kind='line', figsize=[6, 4])
+# a mesma tendencia segue no número de casos
 
 # deaths per day per 1 million inhabitants function without for loop 
 # def deaths_per_day_per_1kk(newcolumn, table):
