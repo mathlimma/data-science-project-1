@@ -1,11 +1,16 @@
 # To add a new cell, type '# %%'
 # To add a new markdown cell, type '# %% [markdown]'
 # %%
+# importando as bibliotecas que estaremos usando no trabalho
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib as mpl
 from scipy import stats
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.ensemble import IsolationForest
 
 
 # %%
@@ -61,9 +66,27 @@ covid.shape
 
 
 # %%
-# o nosso objetivo neste trabalho eh analisar especificamente as cidade de Recife e São Paulo, e como vimos, os dados nao apresentam falha com relação a elementos nulos, por isso a imputação de dados não vai ser necessaria. 
+# Normalização
 
-# sobre detecção de outliers ...
+# min-max do scikit
+scaler = MinMaxScaler()
+covidRecife['confirmed_norm'] = scaler.fit_transform(covidRecife[['confirmed']])
+covidRecife['confirmed_norm'].describe()
+
+
+# %%
+# Discretização
+
+# discretizando com 10 bins com mesmo intervalo
+covidRecife['deaths_dist'] = pd.cut(covidRecife['deaths'],4)
+
+
+# %%
+covidRecife['deaths_dist'].value_counts()
+
+
+# %%
+covidRecife['deaths'].describe()
 
 
 # %%
@@ -73,21 +96,8 @@ covid.shape
 covidRecife = covidRecife.sort_values(by=['date'], ascending=True)
 covidRecife.reset_index(inplace=True, drop=True)
 
-#first try with a for loop
-# def sub_column_value(newcolumn, subcolumn, table):
-#     table[newcolumn] = 0
-#     for index, i in enumerate(subcolumn):
-#         if index > 0:
-#             value = (subcolumn[index] - subcolumn[index-1])
-#             if value > 0:
-#                 table[newcolumn][index] = value
-#             else:
-#                 table[newcolumn][index] = 0
-
-# sub_column_value('deaths_per_day', covidRecife.deaths, covidRecife)
-
-# using pandas diff to calculate the difference between consecutive rows
-covidRecife['deaths_per_day'] = covidRecife.deaths.diff()
+# utilizando o diff() do pandas para calcular a diferença entre linhas consecutivas
+covidRecife['deaths_per_day'] = covidRecife.deaths.diff().abs()
 
 # aqui eu imputo o dado para nao perder os dados do primeiro dia
 covidRecife['deaths_per_day'][0] = 0
@@ -99,7 +109,7 @@ covidRecife.head()
 # pegando  dados de São Paulo, resetando o index e adicionando as colunas
 covidSP = covid[covid.city == 'São Paulo'].sort_values(by=['date'], ascending=True)
 covidSP.reset_index(inplace=True, drop=True)
-covidSP['deaths_per_day'] = covidSP.deaths.diff()
+covidSP['deaths_per_day'] = covidSP.deaths.diff().abs()
 
 # aqui eu imputo o dado para nao perder os dados do primeiro dia
 covidSP['deaths_per_day'][0] = 0
@@ -117,9 +127,9 @@ print("População de São Paulo: ", covidSP.estimated_population_2019[0])
 # %%
 
 # adicionando coluna do total de mortes por 100 mil habitantes nos dataframes de Recife e São Paulo
-covidRecife['deaths_per_100k_inhabitants'] = covidRecife.apply(lambda x: x['deaths']/(x['estimated_population_2019'] / 100000), axis=1)
+covidRecife['deaths_per_100k_inhabitants'] = covidRecife.apply(lambda x: x['deaths']/(x['estimated_population_2019'] / 100000), axis=1).abs()
 
-covidSP['deaths_per_100k_inhabitants'] = covidSP.apply(lambda x: x['deaths']/(x['estimated_population_2019'] / 100000), axis=1)
+covidSP['deaths_per_100k_inhabitants'] = covidSP.apply(lambda x: x['deaths']/(x['estimated_population_2019'] / 100000), axis=1).abs()
 
 # tratando indice 0 com NaN
 covidRecife['deaths_per_100k_inhabitants'][0] = 0
@@ -128,9 +138,9 @@ covidSP['deaths_per_100k_inhabitants'][0] = 0
 
 # %%
 # adicionando coluna de mortes por dia por 100 mil habitantes nos dataframes de Recife e São Paulo
-covidRecife['deaths_per_day_per_100k_inhabitants'] = covidRecife.apply(lambda x: x['deaths_per_day']/(x['estimated_population_2019'] / 100000), axis=1)
+covidRecife['deaths_per_day_per_100k_inhabitants'] = covidRecife.apply(lambda x: x['deaths_per_day']/(x['estimated_population_2019'] / 100000), axis=1).abs()
 
-covidSP['deaths_per_day_per_100k_inhabitants'] = covidSP.apply(lambda x: x['deaths_per_day']/(x['estimated_population_2019'] / 100000), axis=1)
+covidSP['deaths_per_day_per_100k_inhabitants'] = covidSP.apply(lambda x: x['deaths_per_day']/(x['estimated_population_2019'] / 100000), axis=1).abs()
 
 # tratando indice 0 com NaN
 covidRecife['deaths_per_day_per_100k_inhabitants'][0] = 0
@@ -139,12 +149,12 @@ covidSP['deaths_per_day_per_100k_inhabitants'][0] = 0
 
 # %%
 # adicionando coluna de casos confirmados por dia nos dataframes de Recife e São Paulo
-covidRecife['confirmed_per_day'] = covidRecife.confirmed.diff()
-covidSP['confirmed_per_day'] = covidSP.confirmed.diff()
+covidRecife['confirmed_per_day'] = covidRecife.confirmed.diff().abs()
+covidSP['confirmed_per_day'] = covidSP.confirmed.diff().abs()
 
 # adicionando coluna de casos confirmados por dia por dia por 100 mil habitantes nos dataframes de Recife e São Paulo
-covidRecife['confirmed_per_day_per_100k_inhabitants'] = covidRecife.apply(lambda x: x['confirmed_per_day']/(x['estimated_population_2019'] / 100000), axis=1)
-covidSP['confirmed_per_day_per_100k_inhabitants'] = covidSP.apply(lambda x: x['confirmed_per_day']/(x['estimated_population_2019'] / 100000), axis=1)
+covidRecife['confirmed_per_day_per_100k_inhabitants'] = covidRecife.apply(lambda x: x['confirmed_per_day']/(x['estimated_population_2019'] / 100000), axis=1).abs()
+covidSP['confirmed_per_day_per_100k_inhabitants'] = covidSP.apply(lambda x: x['confirmed_per_day']/(x['estimated_population_2019'] / 100000), axis=1).abs()
 
 # tratando indice 0 com NaN
 covidRecife['confirmed_per_day'][0] = 0
@@ -153,7 +163,79 @@ covidSP['confirmed_per_day'][0] = 0
 covidRecife['confirmed_per_day_per_100k_inhabitants'][0] = 0
 covidSP['confirmed_per_day_per_100k_inhabitants'][0] = 0
 
-covidSP.tail()
+covidSP.describe()
+
+
+# %%
+covidRecife.describe()
+
+
+# %%
+# o nosso objetivo neste trabalho eh analisar especificamente as cidade de Recife e São Paulo, e como vimos, os dados nao apresentam falha com relação a elementos nulos, por isso a imputação de dados não vai ser necessaria. 
+
+# sobre detecção de outliers ...
+
+
+# %%
+crec_confirmed_per_day = covidRecife.confirmed_per_day[0:-1:1]
+csp_confirmed_per_day = covidSP.confirmed_per_day[0:-1:1]
+plot_confirmed_per_day_box = pd.concat([crec_confirmed_per_day, csp_confirmed_per_day], axis=1, keys=['Recife', 'Sao Paulo'])
+plot_confirmed_per_day_box.plot(kind='box', figsize=[10, 8])
+plt.ylabel('Casos Confirmados')
+plt.xlabel('Cidades')
+
+# a mesma tendencia segue no número de mortes
+
+# comparação entre o número de mortes total em Recife (azul) e São Paulo (laranja)
+crec_deaths_per_day = covidRecife.deaths_per_day[0:-1:1]
+csp_deaths_per_day = covidSP.deaths_per_day[0:-1:1]
+plot_deaths_per_day_box = pd.concat([crec_deaths_per_day, csp_deaths_per_day], axis=1, keys=['Recife', 'Sao Paulo'])
+plot_deaths_per_day_box.plot(kind='box', figsize=[10, 8])
+plt.ylabel('Mortes')
+plt.xlabel('Cidades')
+
+
+# %%
+covidRecife['confirmed_per_day'].plot(kind="hist", figsize=(10,5))
+covidSP['confirmed_per_day'].plot(kind="hist", figsize=(10,5))
+
+
+# %%
+covidSP.head()
+
+
+# %%
+# Detecção de Outliers
+
+covidRecife1 = covidRecife.drop(columns=['date', 'state', 'city', 'place_type', 'is_last'], axis=1)
+del covidRecife1['deaths_dist']
+
+
+# %%
+rng = np.random.RandomState(42)
+clf = IsolationForest(max_samples=100, random_state=rng)
+clf.fit(covidRecife1)
+
+
+# %%
+scores = clf.predict(covidRecife1)
+
+
+# %%
+scores
+
+
+# %%
+covidRecife1['outlier'] = scores
+
+
+# %%
+covidRecife1 = covidRecife1[covidRecife1['outlier'] != -1]
+len(covidRecife1)
+
+
+# %%
+covidRecife1.describe()
 
 
 # %%
@@ -234,6 +316,23 @@ plt.xlabel('dias')
 
 
 # %%
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+x =[covidRecife.confirmed]
+y =[covidRecife.deaths]
+z =[covidRecife.order_for_place]
+
+ax.scatter(x, y, z, c='r', marker='o')
+
+ax.set_xlabel('Casos confirmados')
+ax.set_ylabel('Mortes')
+ax.set_zlabel('Dias')
+
+plt.show()
+
+
+# %%
 # aqui eu reuno as informações sobre mortes por dia de ambas as cidades
 crec_dp100k = covidRecife.deaths_per_day_per_100k_inhabitants[0:136:1]
 csp_dp100k = covidSP.deaths_per_day_per_100k_inhabitants[0:136:1]
@@ -264,11 +363,6 @@ df_rec_sp['dpdp100k_difference'].plot(kind='hist')
 stats.shapiro(df_rec_sp['dpdp100k_difference'])
 
 # um p-valor menor que o valor crítico indica que a hipótese nula foi rejeitada / shapiro => retorn (valor crítico, p-valor)
-
-
-# %%
-# executando o t-test
-stats.ttest_rel(df_rec_sp['deaths_per_day_per_100k_in_Recife'], df_rec_sp['deaths_per_day_per_100k_in_Sao_Paulo'])
 
 
 # %%
