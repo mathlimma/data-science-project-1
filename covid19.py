@@ -36,6 +36,19 @@ covid.dtypes
 
 
 # %%
+# ajustando tipos dos dados
+covid['date'] = covid['date'].astype('category') 
+covid['state'] = covid['state'].astype('category') 
+covid['city'] = covid['city'].astype('category') 
+covid['place_type'] = covid['place_type'].astype('category') 
+covid.dtypes
+
+
+# %%
+covid['state'].cat.categories
+
+
+# %%
 # o nosso próximo passo eh ver a quantidade de elementos nulos em cada coluna e podemos observar que ha 4 colunas bastante dados nulos 
 print(covid.isnull().sum())
 
@@ -48,15 +61,6 @@ covidRecife.isnull().sum()
 # %%
 covidSP = covid[covid.city=='São Paulo']
 covidSP.isnull().sum()
-
-
-# %%
-# ajustando tipos dos dados
-covid['date'] = covid['date'].astype('category') 
-covid['state'] = covid['state'].astype('category') 
-covid['city'] = covid['city'].astype('category') 
-covid['place_type'] = covid['place_type'].astype('category') 
-covid.dtypes
 
 
 # %%
@@ -99,7 +103,7 @@ covidRecife.reset_index(inplace=True, drop=True)
 # utilizando o diff() do pandas para calcular a diferença entre linhas consecutivas
 covidRecife['deaths_per_day'] = covidRecife.deaths.diff().abs()
 
-# aqui eu imputo o dado para nao perder os dados do primeiro dia
+# aqui eu imputo o dado pois o resultado da função diff() executada acima faz com que tenhamos um NaN na primeira linha da nova coluna e para nao perder os dados do primeiro dia não utilizamos o dropna() aqui e nem nas próximas colunas criadas da mesma forma. 
 covidRecife['deaths_per_day'][0] = 0
 
 covidRecife.head()
@@ -316,6 +320,41 @@ plt.xlabel('dias')
 
 
 # %%
+# Aqui fazemos a correlação entre as colunas de covidRecife
+covidRecife.corr(method='spearman')
+
+
+# %%
+fig = plt.figure()
+ax = plt.axes(projection="3d")
+
+plt.show()
+
+
+# %%
+
+
+
+# %%
+
+fig = plt.figure()
+ax = plt.axes(projection="3d")
+
+z_line = np.linspace(0, 15, 1000)
+x_line = np.cos(z_line)
+y_line = np.sin(z_line)
+ax.plot3D(x_line, y_line, z_line, 'gray')
+
+z_points = 15 * np.random.random(100)
+x_points = np.cos(z_points) + 0.1 * np.random.randn(100)
+y_points = np.sin(z_points) + 0.1 * np.random.randn(100)
+ax.scatter3D(x_points, y_points, z_points, c=z_points, cmap='hsv');
+
+
+plt.show()
+
+
+# %%
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
@@ -368,9 +407,5 @@ stats.shapiro(df_rec_sp['dpdp100k_difference'])
 # %%
 # checando simetria
 df_rec_sp['dpdp100k_difference'].plot(kind='box')
-
-
-# %%
-stats.wilcoxon(df_rec_sp['deaths_per_day_per_100k_in_Recife'], df_rec_sp['deaths_per_day_per_100k_in_Sao_Paulo'])
 
 
